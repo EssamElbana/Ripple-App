@@ -13,7 +13,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import org.koin.android.ext.android.inject
 import org.koin.core.parameter.parametersOf
+import org.parceler.Parcels
 
+private const val SAVED_STATE = "SAVED_STATE"
 
 class MainActivity : AppCompatActivity(), ReposListContract.View {
 
@@ -33,10 +35,9 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
         binding.recyclerView.layoutManager = linearLayoutManager
         binding.recyclerView.adapter = adapter
 
-        job.launch {
-            withContext(IO) {
-                presenter.onViewCreated()
-            }
+        if (savedInstanceState != null && !savedInstanceState.isEmpty) {
+            presenter.setState(Parcels.unwrap(savedInstanceState.getParcelable(SAVED_STATE)))
+            adapter.setDataList(presenter.getState())
         }
 
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -95,7 +96,9 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putParcelable(SAVED_STATE, Parcels.wrap(presenter.getState()))
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

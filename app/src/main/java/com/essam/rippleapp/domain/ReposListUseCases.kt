@@ -1,7 +1,5 @@
 package com.essam.rippleapp.domain
 
-private const val SAVED_STATE = "SAVED_STATE"
-
 fun validateInput(inputQuery: String): UseCaseResult<Any> {
     return if (inputQuery.isEmpty())
         UseCaseResult(isSuccessful = false, error = "Please input repository name")
@@ -33,17 +31,6 @@ fun isValidToLoadMoreRepos(
         if (possibleVisibleItemsOnScreen + firstFullyVisibleItemPosition >= totalItemsInList)
             return true
     return false
-}
-
-fun loadReposFromCache(repository: Repository): UseCaseResult<List<Repo>> {
-    val result = repository.loadRepos(SAVED_STATE)
-    if(result.isNotEmpty())
-        return UseCaseResult(result, true)
-    return UseCaseResult()
-}
-
-fun saveReposToCache(repository: Repository, list: List<Repo>) {
-    repository.saveRepos(SAVED_STATE, list)
 }
 
 data class UseCaseResult<T>(

@@ -13,14 +13,6 @@ class ReposListPresenter(
     private var userQuery = ""
     private var isLoading = false
 
-    override fun onViewCreated() {
-        val result = loadReposFromCache(repository)
-        if(result.isSuccessful) {
-            reposList.addAll(result.data!!)
-            view?.showReposList(reposList)
-        }
-    }
-
     override fun searchRepos(inputQuery: String) {
         userQuery = inputQuery
         val validationResult = validateInput(inputQuery)
@@ -33,7 +25,6 @@ class ReposListPresenter(
             isLoading = false
             if (result.isSuccessful) {
                 reposList = ArrayList(result.data?.items!!)
-                saveReposToCache(repository, reposList)
                 view?.showReposList(reposList)
             } else
                 view?.showError(result.error)
@@ -60,7 +51,6 @@ class ReposListPresenter(
                 view?.showProgress(false)
                 if (result.isSuccessful) {
                     reposList.addAll(result.data?.items!!)
-                    saveReposToCache(repository, reposList)
                     view?.addMoreRepos(reposList)
                 }
             }
@@ -68,6 +58,14 @@ class ReposListPresenter(
 
     override fun onDestroy() {
         view = null
+    }
+
+    override fun setState(list: List<Repo>) {
+        reposList = ArrayList(list)
+    }
+
+    override fun getState(): List<Repo> {
+        return reposList
     }
 
 }

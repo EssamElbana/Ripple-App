@@ -1,5 +1,11 @@
 package com.essam.rippleapp.domain
 
-data class Repo(val id: Long, val name: String?, val description: String?, val owner: Owner?) {
-    data class Owner(val avatar_url: String?)
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class Repo(val id: Long, val name: String?, val description: String?, val owner: Owner?) :
+    Parcelable {
+    @Parcelize
+    data class Owner(val avatar_url: String?) : Parcelable
 }
