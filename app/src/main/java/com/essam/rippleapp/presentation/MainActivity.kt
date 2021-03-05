@@ -8,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.essam.rippleapp.R
+import com.essam.rippleapp.databinding.ActivityMainBinding
 import com.essam.rippleapp.domain.Repo
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import org.koin.android.ext.android.inject
@@ -25,20 +25,22 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
 
     private val adapter = ReposAdapter()
     private val job = CoroutineScope(Dispatchers.Main + Job())
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val linearLayoutManager = LinearLayoutManager(this)
-        recycler_view.layoutManager = linearLayoutManager
-        recycler_view.adapter = adapter
+        binding.recyclerView.layoutManager = linearLayoutManager
+        binding.recyclerView.adapter = adapter
 
         if (savedInstanceState != null && !savedInstanceState.isEmpty) {
             presenter.setState(Parcels.unwrap(savedInstanceState.getParcelable(SAVED_STATE)))
             adapter.setDataList(presenter.getState())
         }
 
-        recycler_view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (dy > 0)
@@ -54,12 +56,12 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
             }
         })
 
-        search_button.setOnClickListener {
+        binding.searchButton.setOnClickListener {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(it.windowToken, 0)
             job.launch {
                 withContext(IO) {
-                    presenter.searchRepos(input_query_edit_text.text.toString())
+                    presenter.searchRepos(binding.inputQueryEditText.text.toString())
                 }
             }
         }
@@ -84,9 +86,9 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
     override fun showProgress(isEnabled: Boolean) {
         job.launch {
             if (isEnabled)
-                progress_bar.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.VISIBLE
             else
-                progress_bar.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
         }
     }
 
