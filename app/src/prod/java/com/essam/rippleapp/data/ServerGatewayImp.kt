@@ -19,11 +19,17 @@ class ServerGatewayImp() : ServerGateway {
         pageSize: Int
     ): UseCaseResult<RepoResponse> {
         val call = service.listRepos(query, pageNumber, pageSize)
-        val result = call.execute()
-        return if(result.isSuccessful && result.body() != null)
-            UseCaseResult(result.body(), true)
-        else
-            UseCaseResult(isSuccessful = false, error = result.message())
+        return try {
+            val result = call.execute()
+            return if (result.isSuccessful && result.body() != null)
+                UseCaseResult(result.body())
+            else
+                UseCaseResult(error = result.message())
+
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            UseCaseResult(error = ex.message.toString())
+        }
     }
 
 

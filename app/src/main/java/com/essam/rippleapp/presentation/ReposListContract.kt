@@ -12,15 +12,13 @@ interface ReposListContract {
     }
 
     interface Presenter {
+        fun onViewCreated()
         fun searchRepos(inputQuery: String)
         fun onScrolling(
             possibleVisibleItemsOnScreen: Int,
             firstFullyVisibleItemPosition: Int,
             totalItemsInList: Int
         )
-
-        fun getState(): List<Repo>
-        fun setState(list: List<Repo>)
         fun onDestroy()
     }
 

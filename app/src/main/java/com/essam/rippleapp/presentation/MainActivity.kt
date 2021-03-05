@@ -7,18 +7,16 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.essam.rippleapp.R
 import com.essam.rippleapp.databinding.ActivityMainBinding
 import com.essam.rippleapp.domain.Repo
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import org.koin.android.ext.android.inject
 import org.koin.core.parameter.parametersOf
-import org.parceler.Parcels
 
-private const val SAVED_STATE = "SAVED_STATE"
 
 class MainActivity : AppCompatActivity(), ReposListContract.View {
+
     private val presenter: ReposListContract.Presenter by inject {
         parametersOf(this)
     }
@@ -35,9 +33,10 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
         binding.recyclerView.layoutManager = linearLayoutManager
         binding.recyclerView.adapter = adapter
 
-        if (savedInstanceState != null && !savedInstanceState.isEmpty) {
-            presenter.setState(Parcels.unwrap(savedInstanceState.getParcelable(SAVED_STATE)))
-            adapter.setDataList(presenter.getState())
+        job.launch {
+            withContext(IO) {
+                presenter.onViewCreated()
+            }
         }
 
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -68,7 +67,9 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
     }
 
     override fun showError(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        job.launch {
+            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun showReposList(list: List<Repo>) {
@@ -94,7 +95,6 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable(SAVED_STATE, Parcels.wrap(presenter.getState()))
     }
 
     override fun onDestroy() {

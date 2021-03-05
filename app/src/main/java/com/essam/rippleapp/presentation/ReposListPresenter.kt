@@ -12,20 +12,32 @@ class ReposListPresenter(
     private val pageSize = 30
     private var userQuery = ""
     private var isLoading = false
-    private var areNoMoreRepos = false
+
+    override fun onViewCreated() {
+        val result = loadReposFromCache(repository)
+        if(result.isSuccessful) {
+            reposList.addAll(result.data!!)
+            view?.showReposList(reposList)
+        }
+    }
 
     override fun searchRepos(inputQuery: String) {
         userQuery = inputQuery
-        view?.showProgress(true)
-        val result = getRepos(repository, userQuery, pageNumber, pageSize)
-        view?.showProgress(false)
-        isLoading = false
-        areNoMoreRepos = false
-        if (result.isSuccessful) {
-            reposList = ArrayList(result.data?.items!!)
-            view?.showReposList(reposList)
-        } else
-            view?.showError(result.error)
+        val validationResult = validateInput(inputQuery)
+        if (!validationResult.isSuccessful)
+            view?.showError(validationResult.error)
+        else {
+            view?.showProgress(true)
+            val result = getRepos(repository, userQuery, pageNumber, pageSize)
+            view?.showProgress(false)
+            isLoading = false
+            if (result.isSuccessful) {
+                reposList = ArrayList(result.data?.items!!)
+                saveReposToCache(repository, reposList)
+                view?.showReposList(reposList)
+            } else
+                view?.showError(result.error)
+        }
     }
 
     override fun onScrolling(
@@ -33,7 +45,7 @@ class ReposListPresenter(
         firstFullyVisibleItemPosition: Int,
         totalItemsInList: Int
     ) {
-        if (!isLoading && !areNoMoreRepos)
+        if (!isLoading)
             if (isValidToLoadMoreRepos(
                     possibleVisibleItemsOnScreen,
                     firstFullyVisibleItemPosition,
@@ -48,20 +60,14 @@ class ReposListPresenter(
                 view?.showProgress(false)
                 if (result.isSuccessful) {
                     reposList.addAll(result.data?.items!!)
+                    saveReposToCache(repository, reposList)
                     view?.addMoreRepos(reposList)
-                } else
-                    areNoMoreRepos = true
+                }
             }
     }
 
     override fun onDestroy() {
         view = null
     }
-
-    override fun getState(): List<Repo> = reposList
-    override fun setState(list: List<Repo>) {
-        reposList = ArrayList(list)
-    }
-
 
 }
