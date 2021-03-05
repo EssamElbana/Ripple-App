@@ -1,4 +1,4 @@
-package com.essam.rippleapp.view
+package com.essam.rippleapp.presentation
 
 import com.essam.rippleapp.domain.*
 

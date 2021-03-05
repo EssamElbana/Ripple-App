@@ -1,5 +1,7 @@
-package com.essam.rippleapp.data.server_gateway
+package com.essam.rippleapp.data
 
+import com.essam.rippleapp.data.server_gateway.GitHubService
+import com.essam.rippleapp.data.server_gateway.ServerGateway
 import com.essam.rippleapp.domain.UseCaseResult
 import com.essam.rippleapp.domain.RepoResponse
 import retrofit2.Retrofit

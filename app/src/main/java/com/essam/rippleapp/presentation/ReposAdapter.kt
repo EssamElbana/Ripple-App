@@ -1,4 +1,4 @@
-package com.essam.rippleapp.view
+package com.essam.rippleapp.presentation
 
 import android.view.LayoutInflater
 import android.view.View
@@ -44,6 +44,7 @@ class ReposAdapter() : RecyclerView.Adapter<ReposAdapter.ReposViewHolder>(){
             repoDescription.text = repo?.description
             Glide.with(itemView)
                 .load(repo?.owner?.avatar_url)
+                .placeholder(R.drawable.place_holder)
                 .transform(CircleCrop())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(avatar)

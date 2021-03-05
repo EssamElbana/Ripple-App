@@ -1,71 +1,65 @@
-package com.essam.rippleapp.view
+package com.essam.rippleapp.presentation
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.essam.rippleapp.R
-import com.essam.rippleapp.data.RepositoryImp
-import com.essam.rippleapp.data.server_gateway.ServerGatewayImp
 import com.essam.rippleapp.domain.Repo
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
+import org.koin.android.ext.android.inject
+import org.koin.core.parameter.parametersOf
 import org.parceler.Parcels
+
 private const val SAVED_STATE = "SAVED_STATE"
 
 class MainActivity : AppCompatActivity(), ReposListContract.View {
-    private val presenter: ReposListContract.Presenter by lazy {
-        ReposListPresenter(this, RepositoryImp(ServerGatewayImp()))
+    private val presenter: ReposListContract.Presenter by inject {
+        parametersOf(this)
     }
+
     private val adapter = ReposAdapter()
     private val job = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val inputQueryEditText = findViewById<TextView>(R.id.input_query_edit_text)
-        val searchButton = findViewById<Button>(R.id.search_button)
-        val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         val linearLayoutManager = LinearLayoutManager(this)
+        recycler_view.layoutManager = linearLayoutManager
+        recycler_view.adapter = adapter
 
-        recyclerView.layoutManager = linearLayoutManager
-        recyclerView.adapter = adapter
         if (savedInstanceState != null && !savedInstanceState.isEmpty) {
             presenter.setState(Parcels.unwrap(savedInstanceState.getParcelable(SAVED_STATE)))
             adapter.setDataList(presenter.getState())
         }
 
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        recycler_view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0) {
+                if (dy > 0)
                     job.launch {
                         withContext(IO) {
                             presenter.onScrolling(
                                 linearLayoutManager.childCount,
                                 linearLayoutManager.findFirstCompletelyVisibleItemPosition(),
-                                recyclerView.adapter?.itemCount ?: 0
+                                adapter.itemCount
                             )
                         }
                     }
-                }
             }
         })
 
-        searchButton.setOnClickListener {
+        search_button.setOnClickListener {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(it.windowToken, 0)
             job.launch {
                 withContext(IO) {
-                    presenter.searchRepos(inputQueryEditText.text.toString())
+                    presenter.searchRepos(input_query_edit_text.text.toString())
                 }
             }
         }
@@ -89,11 +83,10 @@ class MainActivity : AppCompatActivity(), ReposListContract.View {
 
     override fun showProgress(isEnabled: Boolean) {
         job.launch {
-            val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
             if (isEnabled)
-                progressBar.visibility = View.VISIBLE
+                progress_bar.visibility = View.VISIBLE
             else
-                progressBar.visibility = View.GONE
+                progress_bar.visibility = View.GONE
         }
     }
 
